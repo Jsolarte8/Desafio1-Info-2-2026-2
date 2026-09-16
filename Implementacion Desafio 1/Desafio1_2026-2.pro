@@ -1,13 +1,22 @@
+QT += core
+QT -= gui
+
 TEMPLATE = app
+
 CONFIG += console c++17
 CONFIG -= app_bundle
-CONFIG -= qt
+
 
 SOURCES += \
-        LogicaTablero.cpp \
-        abstraccionDeMemoria.cpp \
-        main.cpp
+    main.cpp \
+    abstraccionDeMemoria.cpp \
+    logicaTablero.cpp \
+    combinaciones.cpp \
+    visualizacion.cpp
+
 
 HEADERS += \
-    LogicaTablero.h \
-    abstraccionDeMemoria.h
+    abstraccionDeMemoria.h \
+    logicaTablero.h \
+    combinaciones.h \
+    visualizacion.h
