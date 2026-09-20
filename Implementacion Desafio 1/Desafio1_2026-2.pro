@@ -8,15 +8,21 @@ CONFIG -= app_bundle
 
 
 SOURCES += \
-    main.cpp \
-    abstraccionDeMemoria.cpp \
-    logicaTablero.cpp \
-    combinaciones.cpp \
-    visualizacion.cpp
+    AbstraccionDeMemoria.cpp \
+    Combinaciones.cpp \
+    EstructuraTablero.cpp \
+    Juego.cpp \
+    LogicaTablero.cpp \
+    Partida.cpp \
+    Visualizacion.cpp \
+    main.cpp
 
 
 HEADERS += \
-    abstraccionDeMemoria.h \
-    logicaTablero.h \
-    combinaciones.h \
-    visualizacion.h
+    AbstraccionDeMemoria.h \
+    Combinaciones.h \
+    EstructuraTablero.h \
+    Juego.h \
+    LogicaTablero.h \
+    Partida.h \
+    Visualizacion.h

@@ -294,6 +294,11 @@ Makefile: ../../Desafio1_2026-2.pro C:/Qt/6.11.0/mingw_64/mkspecs/win32-g++/qmak
 		C:/Qt/6.11.0/mingw_64/mkspecs/features/qml_debug.prf \
 		C:/Qt/6.11.0/mingw_64/mkspecs/features/precompile_header.prf \
 		C:/Qt/6.11.0/mingw_64/mkspecs/features/warn_on.prf \
+		C:/Qt/6.11.0/mingw_64/mkspecs/features/permissions.prf \
+		C:/Qt/6.11.0/mingw_64/mkspecs/features/qt.prf \
+		C:/Qt/6.11.0/mingw_64/mkspecs/features/resources_functions.prf \
+		C:/Qt/6.11.0/mingw_64/mkspecs/features/resources.prf \
+		C:/Qt/6.11.0/mingw_64/mkspecs/features/moc.prf \
 		C:/Qt/6.11.0/mingw_64/mkspecs/features/qmake_use.prf \
 		C:/Qt/6.11.0/mingw_64/mkspecs/features/file_copies.prf \
 		C:/Qt/6.11.0/mingw_64/mkspecs/features/testcase_targets.prf \
@@ -301,6 +306,7 @@ Makefile: ../../Desafio1_2026-2.pro C:/Qt/6.11.0/mingw_64/mkspecs/win32-g++/qmak
 		C:/Qt/6.11.0/mingw_64/mkspecs/features/yacc.prf \
 		C:/Qt/6.11.0/mingw_64/mkspecs/features/lex.prf \
 		../../Desafio1_2026-2.pro \
+		C:/Qt/6.11.0/mingw_64/lib/Qt6Core.prl \
 		C:/Qt/6.11.0/mingw_64/mkspecs/features/build_pass.prf
 	$(QMAKE) -o Makefile ..\..\Desafio1_2026-2.pro -spec win32-g++ "CONFIG+=debug" "CONFIG+=qml_debug"
 C:/Qt/6.11.0/mingw_64/mkspecs/features/spec_pre.prf:
@@ -527,6 +533,11 @@ C:/Qt/6.11.0/mingw_64/mkspecs/features/win32/console.prf:
 C:/Qt/6.11.0/mingw_64/mkspecs/features/qml_debug.prf:
 C:/Qt/6.11.0/mingw_64/mkspecs/features/precompile_header.prf:
 C:/Qt/6.11.0/mingw_64/mkspecs/features/warn_on.prf:
+C:/Qt/6.11.0/mingw_64/mkspecs/features/permissions.prf:
+C:/Qt/6.11.0/mingw_64/mkspecs/features/qt.prf:
+C:/Qt/6.11.0/mingw_64/mkspecs/features/resources_functions.prf:
+C:/Qt/6.11.0/mingw_64/mkspecs/features/resources.prf:
+C:/Qt/6.11.0/mingw_64/mkspecs/features/moc.prf:
 C:/Qt/6.11.0/mingw_64/mkspecs/features/qmake_use.prf:
 C:/Qt/6.11.0/mingw_64/mkspecs/features/file_copies.prf:
 C:/Qt/6.11.0/mingw_64/mkspecs/features/testcase_targets.prf:
@@ -534,6 +545,7 @@ C:/Qt/6.11.0/mingw_64/mkspecs/features/exceptions.prf:
 C:/Qt/6.11.0/mingw_64/mkspecs/features/yacc.prf:
 C:/Qt/6.11.0/mingw_64/mkspecs/features/lex.prf:
 ../../Desafio1_2026-2.pro:
+C:/Qt/6.11.0/mingw_64/lib/Qt6Core.prl:
 C:/Qt/6.11.0/mingw_64/mkspecs/features/build_pass.prf:
 qmake: FORCE
 	@$(QMAKE) -o Makefile ..\..\Desafio1_2026-2.pro -spec win32-g++ "CONFIG+=debug" "CONFIG+=qml_debug"
@@ -546,6 +558,18 @@ clean: debug-clean release-clean  FORCE
 distclean: debug-distclean release-distclean  FORCE
 	-$(DEL_FILE) Makefile
 	-$(DEL_FILE) .qmake.stash
+
+debug-mocclean:
+	$(MAKE) -f $(MAKEFILE).Debug mocclean
+release-mocclean:
+	$(MAKE) -f $(MAKEFILE).Release mocclean
+mocclean: debug-mocclean release-mocclean
+
+debug-mocables:
+	$(MAKE) -f $(MAKEFILE).Debug mocables
+release-mocables:
+	$(MAKE) -f $(MAKEFILE).Release mocables
+mocables: debug-mocables release-mocables
 
 check: first
 

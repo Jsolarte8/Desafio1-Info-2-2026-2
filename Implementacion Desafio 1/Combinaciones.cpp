@@ -1,530 +1,166 @@
-#include "combinaciones.h"
-#include "abstraccionDeMemoria.h"
-#include "logicaTablero.h"
+#include "Combinaciones.h"
+#include "AbstraccionDeMemoria.h"
+#include "LogicaTablero.h"
+#include "Juego.h"
 
-
-//Mascara de eliminacion
-
-static int bytesNecesariosMascara(
-    int filas,
-    int columnas)
-{
-    int total_posiciones =
-        filas * columnas;
-
-    /*
-     * Solamente necesitamos 1 bit por posicion:
-     *
-     * 0 = conservar
-     * 1 = eliminar
-     */
-
+static int bytesNecesariosMascara(int filas, int columnas) {
+    int total_posiciones = filas * columnas;
     return (total_posiciones + 7) >> 3;
 }
 
-
-static void marcarIndice(
-    unsigned char* mascara,
-    int indice)
-{
-    // indice / 8
-    int byte =
-        indice >> 3;
-
-    // indice % 8
-    int bit =
-        indice & 7;
-
-
-    mascara[byte] |=
-        static_cast<unsigned char>(
-            1 << bit
-            );
+static void marcarIndice(unsigned char* mascara, int indice) {
+    int byte = indice >> 3;
+    int bit  = indice & 7;
+    mascara[byte] |= static_cast<unsigned char>(1 << bit);
 }
 
-
-static bool indiceMarcado(
-    const unsigned char* mascara,
-    int indice)
-{
-    int byte =
-        indice >> 3;
-
-    int bit =
-        indice & 7;
-
-
-    return (
-               mascara[byte]
-               &
-               static_cast<unsigned char>(
-                   1 << bit
-                   )
-               ) != 0;
+static bool indiceMarcado(const unsigned char* mascara, int indice) {
+    int byte = indice >> 3;
+    int bit  = indice & 7;
+    return (mascara[byte] & static_cast<unsigned char>(1 << bit)) != 0;
 }
 
-
-unsigned char* crearMascaraEliminacion(
-    int filas,
-    int columnas)
-{
-    int bytes =
-        bytesNecesariosMascara(
-            filas,
-            columnas
-            );
-
-
-    unsigned char* mascara =
-        new unsigned char[bytes];
-
-
-    for (int i = 0;
-         i < bytes;
-         ++i)
-    {
+unsigned char* crearMascaraEliminacion(int filas, int columnas) {
+    int bytes = bytesNecesariosMascara(filas, columnas);
+    unsigned char* mascara = new unsigned char[bytes];
+    for (int i = 0; i < bytes; ++i) {
         mascara[i] = 0;
     }
-
-
     return mascara;
 }
 
-
-void liberarMascaraEliminacion(
-    unsigned char* mascara)
-{
+void liberarMascaraEliminacion(unsigned char* mascara) {
     delete[] mascara;
 }
 
-
-void limpiarMascaraEliminacion(
-    unsigned char* mascara,
-    int filas,
-    int columnas)
-{
-    int bytes =
-        bytesNecesariosMascara(
-            filas,
-            columnas
-            );
-
-
-    for (int i = 0;
-         i < bytes;
-         ++i)
-    {
+void limpiarMascaraEliminacion(unsigned char* mascara, int filas, int columnas) {
+    int bytes = bytesNecesariosMascara(filas, columnas);
+    for (int i = 0; i < bytes; ++i) {
         mascara[i] = 0;
     }
 }
 
+static int buscarHorizontales(const unsigned char* tablero, int filas, int columnas, unsigned char* mascara) {
 
-// Combinaciones Horizontales
-
-static int buscarHorizontales(
-    const unsigned char* tablero,
-    int filas,
-    int columnas,
-    unsigned char* mascara)
-{
     int combinaciones = 0;
 
+    for (int fila = 0; fila < filas; ++fila) {
 
-    for (int fila = 0;
-         fila < filas;
-         ++fila)
-    {
-        if (columnas <= 0)
-        {
-            continue;
-        }
+        int indiceBaseDeEstaFila = fila * columnas;
+        int valorAnterior        = leerFichaIndice(tablero, indiceBaseDeEstaFila);
+        int inicioSecuencia      = 0;
+        int longitudSecuencia    = 1;
 
+        for (int col = 1; col <= columnas; ++col) {
 
-        int base =
-            fila * columnas;
-
-
-        int valor_anterior =
-            leerFichaIndice(
-                tablero,
-                base
-                );
-
-
-        int inicio = 0;
-        int longitud = 1;
-
-
-        /*
-         * El <= columnas es intencional.
-         *
-         * Cuando col == columnas simulamos
-         * un valor diferente para poder
-         * procesar la ultima secuencia.
-         */
-
-        for (int col = 1;
-             col <= columnas;
-             ++col)
-        {
-            int valor_actual = -1;
-
-
-            if (col < columnas)
-            {
-                valor_actual =
-                    leerFichaIndice(
-                        tablero,
-                        base + col
-                        );
+            int valorActual = -1;
+            if (col < columnas) {
+                valorActual = leerFichaIndice(tablero, indiceBaseDeEstaFila + col);
             }
 
-
-            if (
-                col < columnas
-                &&
-                valor_actual == valor_anterior
-                &&
-                valor_anterior != FICHA_VACIA
-                )
-            {
-                ++longitud;
-            }
-            else
-            {
-                /*
-                 * Terminamos de recorrer
-                 * una secuencia.
-                 */
-
-                if (
-                    valor_anterior
-                        != FICHA_VACIA
-                    &&
-                    longitud >= 3
-                    )
-                {
+            if (col < columnas && valorActual == valorAnterior && valorAnterior != FICHA_VACIA) {
+                ++longitudSecuencia;
+            } else {
+                if (valorAnterior != FICHA_VACIA && longitudSecuencia >= 3) {
                     ++combinaciones;
-
-
-                    /*
-                     * Marcamos todas las posiciones,
-                     * pero NO las eliminamos todavia.
-                     */
-
-                    for (
-                        int k = inicio;
-                        k < inicio + longitud;
-                        ++k
-                        )
-                    {
-                        marcarIndice(
-                            mascara,
-                            base + k
-                            );
+                    for (int k = inicioSecuencia; k < inicioSecuencia + longitudSecuencia; ++k) {
+                        marcarIndice(mascara, indiceBaseDeEstaFila + k);
                     }
                 }
-
-
-                inicio = col;
-                longitud = 1;
-                valor_anterior =
-                    valor_actual;
+                inicioSecuencia   = col;
+                longitudSecuencia = 1;
+                valorAnterior     = valorActual;
             }
         }
     }
 
-
     return combinaciones;
 }
 
+static int buscarVerticales(const unsigned char* tablero, int filas, int columnas, unsigned char* mascara) {
 
-// Combinaciones Verticales
-
-static int buscarVerticales(
-    const unsigned char* tablero,
-    int filas,
-    int columnas,
-    unsigned char* mascara)
-{
     int combinaciones = 0;
 
+    for (int col = 0; col < columnas; ++col) {
 
-    for (int col = 0;
-         col < columnas;
-         ++col)
-    {
-        if (filas <= 0)
-        {
-            continue;
-        }
+        int valorAnterior     = leerFichaIndice(tablero, col);
+        int inicioFila        = 0;
+        int longitudSecuencia = 1;
 
+        for (int fila = 1; fila <= filas; ++fila) {
 
-        int valor_anterior =
-            leerFichaIndice(
-                tablero,
-                col
-                );
-
-
-        int inicio_fila = 0;
-        int longitud = 1;
-
-
-        for (int fila = 1;
-             fila <= filas;
-             ++fila)
-        {
-            int valor_actual = -1;
-
-
-            if (fila < filas)
-            {
-                int indice =
-                    fila * columnas
-                    + col;
-
-
-                valor_actual =
-                    leerFichaIndice(
-                        tablero,
-                        indice
-                        );
+            int valorActual = -1;
+            if (fila < filas) {
+                valorActual = leerFichaIndice(tablero, fila * columnas + col);
             }
 
-
-            if (
-                fila < filas
-                &&
-                valor_actual
-                    == valor_anterior
-                &&
-                valor_anterior
-                    != FICHA_VACIA
-                )
-            {
-                ++longitud;
-            }
-            else
-            {
-                if (
-                    valor_anterior
-                        != FICHA_VACIA
-                    &&
-                    longitud >= 3
-                    )
-                {
+            if (fila < filas && valorActual == valorAnterior && valorAnterior != FICHA_VACIA) {
+                ++longitudSecuencia;
+            } else {
+                if (valorAnterior != FICHA_VACIA && longitudSecuencia >= 3) {
                     ++combinaciones;
-
-
-                    for (
-                        int k = 0;
-                        k < longitud;
-                        ++k
-                        )
-                    {
-                        int indice =
-                            (inicio_fila + k)
-                                * columnas
-                            + col;
-
-
-                        marcarIndice(
-                            mascara,
-                            indice
-                            );
+                    for (int k = 0; k < longitudSecuencia; ++k) {
+                        marcarIndice(mascara, (inicioFila + k) * columnas + col);
                     }
                 }
-
-
-                inicio_fila =
-                    fila;
-
-                longitud = 1;
-
-                valor_anterior =
-                    valor_actual;
+                inicioFila        = fila;
+                longitudSecuencia = 1;
+                valorAnterior     = valorActual;
             }
         }
     }
 
-
     return combinaciones;
 }
 
+int detectarCombinaciones(const unsigned char* tablero, int filas, int columnas, unsigned char* mascara) {
 
-// Detectar todas las combinaciones
+    limpiarMascaraEliminacion(mascara, filas, columnas);
 
-int detectarCombinaciones(
-    const unsigned char* tablero,
-    int filas,
-    int columnas,
-    unsigned char* mascara)
-{
-    /*
-     * Importante:
-     *
-     * Primero limpiamos la mascara.
-     *
-     * Luego buscamos horizontal y vertical
-     * sobre EL MISMO tablero sin modificarlo.
-     */
+    int horizontales = buscarHorizontales(tablero, filas, columnas, mascara);
+    int verticales   = buscarVerticales(tablero, filas, columnas, mascara);
 
-    limpiarMascaraEliminacion(
-        mascara,
-        filas,
-        columnas
-        );
-
-
-    int horizontales =
-        buscarHorizontales(
-            tablero,
-            filas,
-            columnas,
-            mascara
-            );
-
-
-    int verticales =
-        buscarVerticales(
-            tablero,
-            filas,
-            columnas,
-            mascara
-            );
-
-
-    return horizontales
-           + verticales;
+    return horizontales + verticales;
 }
 
+int eliminarMarcadas(unsigned char* tablero, int filas, int columnas, const unsigned char* mascara) {
 
+    int totalPosiciones = filas * columnas;
+    int eliminadas      = 0;
 
-// Eliminar todas las posiciones marcadas
-
-
-int eliminarMarcadas(
-    unsigned char* tablero,
-    int filas,
-    int columnas,
-    const unsigned char* mascara)
-{
-    int total_posiciones =
-        filas * columnas;
-
-
-    int eliminadas = 0;
-
-
-    for (
-        int indice = 0;
-        indice < total_posiciones;
-        ++indice
-        )
-    {
-        if (
-            indiceMarcado(
-                mascara,
-                indice
-                )
-            )
-        {
-            escribirFichaIndice(
-                tablero,
-                indice,
-                FICHA_VACIA
-                );
-
-
+    for (int indice = 0; indice < totalPosiciones; ++indice) {
+        if (indiceMarcado(mascara, indice)) {
+            escribirFichaIndice(tablero, indice, FICHA_VACIA);
             ++eliminadas;
         }
     }
 
-
     return eliminadas;
 }
 
+int procesarCascadas(unsigned char* tablero, int filas, int columnas, unsigned char* mascara,
+                     int& fichas_eliminadas_total, int& combinaciones_totales) {
 
-//Cascada
-
-int procesarCascadas(
-    unsigned char* tablero,
-    int filas,
-    int columnas,
-    unsigned char* mascara,
-    int& fichas_eliminadas_total,
-    int& combinaciones_totales)
-{
     int cascadas = 0;
 
+    while (true) {
 
-    /*
-     * Repetir hasta que el tablero
-     * no tenga combinaciones.
-     */
+        int combinacionesEnEstaRonda = detectarCombinaciones(tablero, filas, columnas, mascara);
 
-    while (true)
-    {
-        int combinaciones =
-            detectarCombinaciones(
-                tablero,
-                filas,
-                columnas,
-                mascara
-                );
-
-
-        // Tablero estable.
-        if (combinaciones == 0)
-        {
+        if (combinacionesEnEstaRonda == 0) {
             break;
         }
 
+        int fichasEliminadasEnEstaRonda = eliminarMarcadas(tablero, filas, columnas, mascara);
 
-        int eliminadas =
-            eliminarMarcadas(
-                tablero,
-                filas,
-                columnas,
-                mascara
-                );
-
-
-        fichas_eliminadas_total +=
-            eliminadas;
-
-
-        combinaciones_totales +=
-            combinaciones;
-
+        fichas_eliminadas_total += fichasEliminadasEnEstaRonda;
+        combinaciones_totales   += combinacionesEnEstaRonda;
 
         ++cascadas;
 
-
-        // Las fichas restantes caen.
-        aplicarGravedad(
-            tablero,
-            filas,
-            columnas
-            );
-
-
-        // Se generan nuevas fichas.
-        rellenarVaciosSuperiores(
-            tablero,
-            filas,
-            columnas
-            );
-
-
-        /*
-         * El while vuelve al comienzo
-         * y verifica si las fichas nuevas
-         * generaron otra combinacion.
-         */
+        aplicarGravedad(tablero, filas, columnas);
+        rellenarVaciosSuperiores(tablero, filas, columnas);
     }
-
 
     return cascadas;
 }
